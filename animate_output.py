@@ -86,6 +86,14 @@ if __name__ == '__main__':
         with open(args.ascii[0], 'r') as f:
             a.animate(f.read())
     elif img_to_display() == 'clip':
-        a.animate(pyperclip.paste())
+        d = None
+        try:
+            d = pyperclip.paste() 
+        except Exception:
+            d = """
+            Did you just edit the code or you forgot 
+            to install pyperclip module?
+            """
+        a.animate(d)
     else:
         help()

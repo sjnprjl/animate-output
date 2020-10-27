@@ -3,7 +3,10 @@ import time
 import argparse
 import sys
 from image2ascii import Image2Ascii as A2I
-
+try:
+    import pyperclip
+except Exception:
+    pass
 parser = argparse.ArgumentParser(
     usage='%(prog)s <[-i] [--image]> [Location] || <[-a] [--ascii]> [Location]',
     description='''simple python program
@@ -23,6 +26,12 @@ parser.add_argument(
     default=False,
     help="Location of text file containing ascii art")
 parser.add_argument(
+    '-c',
+    '--clipboard',
+    action='store_true', 
+    # nargs='+',
+    help="Copy from clipboard")
+parser.add_argument(
     '-w',
     '--width',
     type=int,
@@ -39,11 +48,14 @@ parser.add_argument(
 
 args = parser.parse_args()
 
+def help():
+    parser.print_help()
+    exit()
+
 
 def validate():
     if(len(sys.argv) <= 1):
-        parser.print_help()
-        exit()
+        help()
 
 
 def img_to_display():
@@ -51,6 +63,8 @@ def img_to_display():
         return 'img'
     elif args.ascii:
         return 'ascii'
+    elif args.clipboard:
+        return 'clip'
 
 
 class Animate:
@@ -62,13 +76,16 @@ class Animate:
             print(_, end='', flush=True)
             time.sleep(self.speed)
 
-
 if __name__ == '__main__':
     validate()
     a = Animate(args.speed)
     if img_to_display() == 'img':
         asc = A2I(args.image[0] , args.width).convert()
         a.animate(asc)
-    else:
+    elif img_to_display() == 'ascii':
         with open(args.ascii[0], 'r') as f:
             a.animate(f.read())
+    elif img_to_display() == 'clip':
+        a.animate(pyperclip.paste())
+    else:
+        help()

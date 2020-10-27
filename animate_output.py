@@ -4,8 +4,9 @@ import argparse
 import sys
 from PIL import Image
 
-parser = argparse.ArgumentParser(usage='%(prog)s <[-i] [--image]> [Location] || <[-a] [--ascii]> [Location]',
-                                 description='''simple python program
+parser = argparse.ArgumentParser(
+    usage='%(prog)s <[-i] [--image]> [Location] || <[-a] [--ascii]> [Location]',
+    description='''simple python program
             that output ascii art with animation.
         ''')
 
@@ -45,16 +46,11 @@ def validate():
         exit()
 
 
-validate()
-
-
 def img_to_display():
     if args.image:
         return 'img'
     elif args.ascii:
         return 'ascii'
-
-# display help message if no argument is passed
 
 
 class Animate:
@@ -62,27 +58,47 @@ class Animate:
         self.speed = speed
 
     @staticmethod
-    def image_ascii(img):
-        img = Image.open(img)
-        width, height = img.size
-        a_r = height / width
-        n_w = args.width
-        n_h = a_r * n_w * 0.55
-        img = img.resize((n_w, int(n_h)))
+    def __resize(image, new_width):
+        width, height = image.size
+        aspect_ratio = float(height) / float(width)
+        new_height = aspect_ratio * new_width * 0.55
+        image = image.resize((new_width, int(new_height)))
 
-        img = img.convert('L')
-        pixels = img.getdata()
+        return image
 
-        chars = [";", "x", "{", "&", "@", "$", "%", "*", "!", ":", "."]
-        new_pixels = [chars[pixel // 25] for pixel in pixels]
-        new_pixels = ''.join(new_pixels)
+    @staticmethod
+    def __grayscale(image):
+        return image.convert('L')
 
-        new_pixels_count = len(new_pixels)
-        ascii_img = [new_pixels[index:index + n_w]
-                     for index in range(0, new_pixels_count, n_w)]
-        ascii_img = "\n".join(ascii_img)
+    @staticmethod
+    def __modify(image, buckets=25):
+        initial_pixels = image.getdata()
+        chars = list("@#S%?*+;:,.")
+        new_pixels = [chars[pixel // buckets] for pixel in initial_pixels]
+        return ''.join(new_pixels)
 
-        return ascii_img
+    @staticmethod
+    def __process(image, new_width):
+        image = Animate.__resize(image, new_width)
+        image = Animate.__grayscale(image)
+        pixels = Animate.__modify(image)
+
+        len_pixels = len(pixels)
+
+        new_image = [pixels[index: index + new_width]
+                     for index in range(0, len_pixels, new_width)]
+        return '\n'.join(new_image)
+
+    @staticmethod
+    def image_ascii(path):
+        image = None
+        try:
+            image = Image.open(path)
+        except Exception:
+            print('Unable to find image in {} \n'.format(path))
+            exit()
+
+        return Animate.__process(image, args.width)
 
     def animate(self, art):
         for _ in art:
@@ -91,8 +107,8 @@ class Animate:
 
 
 if __name__ == '__main__':
+    validate()
     a = Animate(args.speed)
-
     if img_to_display() == 'img':
         a.animate(Animate.image_ascii(args.image[0]))
     else:

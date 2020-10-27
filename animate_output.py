@@ -2,7 +2,7 @@
 import time
 import argparse
 import sys
-from PIL import Image
+from image2ascii import Image2Ascii as A2I
 
 parser = argparse.ArgumentParser(
     usage='%(prog)s <[-i] [--image]> [Location] || <[-a] [--ascii]> [Location]',
@@ -57,49 +57,6 @@ class Animate:
     def __init__(self, speed=0.01):
         self.speed = speed
 
-    @staticmethod
-    def __resize(image, new_width):
-        width, height = image.size
-        aspect_ratio = float(height) / float(width)
-        new_height = aspect_ratio * new_width * 0.55
-        image = image.resize((new_width, int(new_height)))
-
-        return image
-
-    @staticmethod
-    def __grayscale(image):
-        return image.convert('L')
-
-    @staticmethod
-    def __modify(image, buckets=25):
-        initial_pixels = image.getdata()
-        chars = list("@#S%?*+;:,.")
-        new_pixels = [chars[pixel // buckets] for pixel in initial_pixels]
-        return ''.join(new_pixels)
-
-    @staticmethod
-    def __process(image, new_width):
-        image = Animate.__resize(image, new_width)
-        image = Animate.__grayscale(image)
-        pixels = Animate.__modify(image)
-
-        len_pixels = len(pixels)
-
-        new_image = [pixels[index: index + new_width]
-                     for index in range(0, len_pixels, new_width)]
-        return '\n'.join(new_image)
-
-    @staticmethod
-    def image_ascii(path):
-        image = None
-        try:
-            image = Image.open(path)
-        except Exception:
-            print('Unable to find image in {} \n'.format(path))
-            exit()
-
-        return Animate.__process(image, args.width)
-
     def animate(self, art):
         for _ in art:
             print(_, end='', flush=True)
@@ -110,7 +67,8 @@ if __name__ == '__main__':
     validate()
     a = Animate(args.speed)
     if img_to_display() == 'img':
-        a.animate(Animate.image_ascii(args.image[0]))
+        asc = A2I(args.image[0] , args.width).convert()
+        a.animate(asc)
     else:
         with open(args.ascii[0], 'r') as f:
             a.animate(f.read())

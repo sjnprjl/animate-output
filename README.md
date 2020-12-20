@@ -54,7 +54,7 @@ animate_output.py <[-i] [--image]> [Location] || <[-a] [--ascii]> [Location]
 ### ``Clone this repository``
 
 ```bash
-git clone https://github.com/sujanp100/animate-output.git
+git clone https://github.com/ilvghst/animate-output.git
 
 ```
 
